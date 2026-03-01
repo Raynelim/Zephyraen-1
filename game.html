@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zephyraen Text RPG - Game</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <h1>ZEPHYRAEN</h1>
+        <p class="subtitle">Text RPG</p>
+
+        <section class="panel">
+          <h2>Stats</h2>
+          <ul class="stats" id="stats"></ul>
+        </section>
+
+        <section class="panel">
+          <h2>Activities</h2>
+          <nav class="activities" id="activities"></nav>
+        </section>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <h2 id="screenTitle">Village</h2>
+        </header>
+
+        <section class="content-frame">
+          <div id="asciiAnim" class="ascii" aria-hidden="true"></div>
+          <div id="mainText" class="main-text"></div>
+        </section>
+
+        <section class="log-frame">
+          <h3>Adventure Log</h3>
+          <ul id="log" class="log"></ul>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zephyraen Text RPG - Signup</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="auth-wrap">
+      <section class="auth-card">
+        <h1>ZEPHYRAEN</h1>
+        <p class="subtitle">Create Account</p>
+
+        <form id="signupForm" class="auth-form">
+          <label for="signupEmail">Email</label>
+          <input id="signupEmail" name="email" type="email" required />
+
+          <label for="signupPassword">Password</label>
+          <input id="signupPassword" name="password" type="password" required />
+
+          <label for="signupConfirmPassword">Confirm Password</label>
+          <input id="signupConfirmPassword" name="confirmPassword" type="password" required />
+
+          <button type="submit" class="option-btn">Signup</button>
+          <button type="button" id="goLoginBtn" class="option-btn">Go to Login</button>
+        </form>
+      </section>
+    </main>
+
+    <script type="module" src="auth.js"></script>
+  </body>
+</html>
