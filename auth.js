@@ -4,7 +4,7 @@ import {
   signInWithEmailAndPassword,
 } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
 import { get, ref, set } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
-import { auth, database } from "./firebase.js";
+import { auth, database } from "./firebase.js?v=20260302r";
 
 const elements = {
   authCard: document.querySelector(".auth-card"),
@@ -18,10 +18,8 @@ const elements = {
   loginEmailMessage: document.getElementById("loginEmailMessage"),
   loginPasswordMessage: document.getElementById("loginPasswordMessage"),
   signupEmail: document.getElementById("signupEmail"),
-  signupName: document.getElementById("signupName"),
   signupPassword: document.getElementById("signupPassword"),
   signupConfirmPassword: document.getElementById("signupConfirmPassword"),
-  signupNameMessage: document.getElementById("signupNameMessage"),
   signupEmailMessage: document.getElementById("signupEmailMessage"),
   signupPasswordMessage: document.getElementById("signupPasswordMessage"),
   signupConfirmPasswordMessage: document.getElementById("signupConfirmPasswordMessage"),
@@ -30,6 +28,7 @@ const elements = {
 const routes = {
   login: "index.html",
   signup: "signup.html",
+  registration: "registration.html?v=20260302q",
   game: "game.html",
 };
 
@@ -42,14 +41,14 @@ const messages = {
   passwordLength: "Password must have at least 6 characters.",
   passwordDigit: "Password must have at least 1 digit.",
   passwordMatch: "Passwords must match.",
-  loginSuccess: "Login successful.",
-  signupSuccess: "Signup successful.",
+  loginSuccess: "Login successful! Entering the world of Zephyraen....",
+  signupSuccess: "Signup successful! Processing to registration....",
   verifyFailed: "Unable to verify email right now. Please try again.",
   loginFailed: "Login failed. Please try again.",
   signupFailed: "Signup failed. Please try again.",
 };
 
-const redirectDelayMs = 3000;
+const redirectDelayMs = 1000;
 
 function isValidEmail(email) {
   return email.includes("@") && email.includes(".com");
@@ -92,7 +91,7 @@ function setStatusMessage(text, type) {
   }
 
   elements.authStatusMessage.textContent = text;
-  elements.authStatusMessage.classList.remove("show", "success");
+  elements.authStatusMessage.classList.remove("show", "success", "error");
 
   if (!text) {
     return;
@@ -117,9 +116,14 @@ function wait(ms) {
 
 async function showSuccessThenRedirect(message, destination) {
   setStatusMessage(message, "success");
+  if (elements.authStatusMessage) {
+    elements.authStatusMessage.style.display = "block";
+  }
   elements.authCard?.classList.add("success-flash");
+  void elements.authCard?.offsetHeight;
+  await wait(30);
   await wait(redirectDelayMs);
-  window.location.href = destination;
+  window.location.replace(destination);
 }
 
 function getFieldValue(node) {
@@ -152,6 +156,20 @@ function deriveNameFromEmail(email) {
   return localPart || "Player";
 }
 
+function getCreationDateTime() {
+  const now = new Date();
+  const day = String(now.getDate()).padStart(2, "0");
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const year = String(now.getFullYear());
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+
+  return {
+    creationDate: `${day}/${month}/${year}`,
+    creationTime: `${hours}:${minutes}`,
+  };
+}
+
 async function ensureUserDataInDatabase(user, emailFallback = "", nameFallback = "") {
   if (!user?.uid) {
     return;
@@ -159,31 +177,29 @@ async function ensureUserDataInDatabase(user, emailFallback = "", nameFallback =
 
   const resolvedEmail = user.email ?? emailFallback;
   const resolvedName = nameFallback || deriveNameFromEmail(resolvedEmail);
+  const creationInfo = getCreationDateTime();
 
-  const playerRef = ref(database, `players/${user.uid}`);
-  await set(playerRef, {
-    name: resolvedName,
-    email: resolvedEmail,
-  });
+  const accountDetailsRef = ref(database, `players/${user.uid}/accountDetails`);
+  const accountDetailsSnapshot = await get(accountDetailsRef);
+  const existingAccountDetails = accountDetailsSnapshot.exists() ? accountDetailsSnapshot.val() : {};
+  const existingDifficultyLevel = existingAccountDetails?.difficultyLevel ?? {};
 
-  const userRef = ref(database, `users/${user.uid}`);
-  const userSnapshot = await get(userRef);
-
-  if (userSnapshot.exists()) {
-    return;
-  }
-
-  await set(userRef, {
-    profile: {
-      name: resolvedName,
-      email: resolvedEmail,
-      createdAt: Date.now(),
-    },
-    stats: {
-      day: 1,
-      level: 1,
-      xp: 0,
-      villageLevel: 1,
+  await set(accountDetailsRef, {
+    name: existingAccountDetails?.name || resolvedName,
+    email: existingAccountDetails?.email || resolvedEmail,
+    age: existingAccountDetails?.age ?? null,
+    creationDate: existingAccountDetails?.creationDate || creationInfo.creationDate,
+    creationTime: existingAccountDetails?.creationTime || creationInfo.creationTime,
+    difficultyLevel: {
+      easy: {
+        gameDetails: existingDifficultyLevel?.easy?.gameDetails ?? {},
+      },
+      normal: {
+        gameDetails: existingDifficultyLevel?.normal?.gameDetails ?? {},
+      },
+      hardcore: {
+        gameDetails: existingDifficultyLevel?.hardcore?.gameDetails ?? {},
+      },
     },
   });
 }
@@ -266,7 +282,8 @@ async function handleLoginSubmit(event) {
 
   try {
     const credential = await signInWithEmailAndPassword(auth, email, password);
-    await ensureUserDataInDatabase(credential.user, email);
+    ensureUserDataInDatabase(credential.user, email).catch(() => {
+    });
     setAuthMessage(elements.loginPasswordMessage, messages.loginSuccess, "success", elements.loginPassword);
     await showSuccessThenRedirect(messages.loginSuccess, routes.game);
   } catch (error) {
@@ -306,17 +323,11 @@ async function handleSignupSubmit(event) {
   event.preventDefault();
   clearStatusState();
 
-  const name = getFieldValue(elements.signupName);
   const email = getFieldValue(elements.signupEmail);
   const password = getPasswordValue(elements.signupPassword);
   const confirmPassword = getPasswordValue(elements.signupConfirmPassword);
 
   const signupErrors = {
-    name: {
-      messageNode: elements.signupNameMessage,
-      inputNode: elements.signupName,
-      text: "",
-    },
     email: {
       messageNode: elements.signupEmailMessage,
       inputNode: elements.signupEmail,
@@ -333,10 +344,6 @@ async function handleSignupSubmit(event) {
       text: "",
     },
   };
-
-  if (!requireValue(name)) {
-    signupErrors.name.text = messages.requiredField;
-  }
 
   if (!requireValue(email)) {
     signupErrors.email.text = messages.requiredField;
@@ -365,17 +372,6 @@ async function handleSignupSubmit(event) {
     signupErrors.confirmPassword.text = messages.passwordMatch;
   }
 
-  if (!signupErrors.email.text) {
-    try {
-      const exists = await accountExistsInAuth(email);
-      if (exists) {
-        signupErrors.email.text = messages.emailInUse;
-      }
-    } catch {
-      signupErrors.email.text = messages.verifyFailed;
-    }
-  }
-
   applyFieldErrors(signupErrors);
   if (hasAnyFieldErrors(signupErrors)) {
     return;
@@ -383,13 +379,21 @@ async function handleSignupSubmit(event) {
 
   try {
     const credential = await createUserWithEmailAndPassword(auth, email, password);
-    await ensureUserDataInDatabase(credential.user, email, name);
+    ensureUserDataInDatabase(credential.user, email).catch(() => {
+    });
 
     setAuthMessage(elements.signupConfirmPasswordMessage, messages.signupSuccess, "success", elements.signupConfirmPassword);
-    await showSuccessThenRedirect(messages.signupSuccess, routes.signup);
+    await showSuccessThenRedirect(messages.signupSuccess, routes.registration);
   } catch (error) {
-    if (error?.code === "auth/email-already-in-use") {
+    const code = error?.code ?? "";
+
+    if (code === "auth/email-already-in-use") {
       setAuthMessage(elements.signupEmailMessage, messages.emailInUse, "error", elements.signupEmail);
+      return;
+    }
+
+    if (code === "auth/network-request-failed") {
+      setAuthMessage(elements.signupEmailMessage, messages.verifyFailed, "error", elements.signupEmail);
       return;
     }
 

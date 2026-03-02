@@ -9,7 +9,7 @@ A black-and-white browser text RPG prototype with Firebase Authentication and Re
 
 ## Firebase
 - Email/password authentication is enabled in `auth.js`.
-- User stats are stored in Realtime Database at `users/{uid}/stats`.
+- User stats are stored in Realtime Database at `players/{uid}/stats`.
 
 ## Run
 1. Run the project from a local static server (for example VS Code Live Server).

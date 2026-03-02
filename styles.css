@@ -227,7 +227,63 @@ h1 {
 
 .auth-card.success-flash {
   border-color: #5de38a;
-  box-shadow: 0 0 0 2px rgba(93, 227, 138, 0.25);
+  box-shadow: 0 0 0 3px rgba(93, 227, 138, 0.45);
+}
+
+.registration-card {
+  max-width: 640px;
+}
+
+.registration-simple-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.age-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.age-number {
+  width: 82px;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.difficulty-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.difficulty-card {
+  border: 1px solid var(--line);
+  background: #050505;
+  color: var(--text);
+  padding: 12px 10px;
+  border-radius: 8px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.difficulty-card:hover {
+  border-color: #bfbfbf;
+}
+
+.difficulty-card.active {
+  border-color: #5de38a;
+  box-shadow: 0 0 0 1px rgba(93, 227, 138, 0.25);
+}
+
+.difficulty-description {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.35;
 }
 
 .auth-status {
@@ -243,6 +299,10 @@ h1 {
 
 .auth-status.success {
   color: #5de38a;
+}
+
+.auth-status.error {
+  color: #ff6b6b;
 }
 
 .auth-form {
@@ -268,6 +328,36 @@ h1 {
   padding: 11px 12px;
   font-family: inherit;
   transition: border-color 0.15s ease;
+}
+
+.auth-form input[readonly] {
+  opacity: 0.85;
+}
+
+.auth-form select,
+.auth-form textarea {
+  border: 2px solid #8fa1ad;
+  border-radius: 8px;
+  background: #050505;
+  color: var(--text);
+  padding: 11px 12px;
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.auth-form textarea {
+  resize: vertical;
+  min-height: 92px;
+}
+
+.auth-form select.error,
+.auth-form textarea.error {
+  border-color: #ff6b6b;
+}
+
+.auth-form select.success,
+.auth-form textarea.success {
+  border-color: #5de38a;
 }
 
 .auth-form input.error {
@@ -296,4 +386,10 @@ h1 {
 
 .field-message.success {
   color: #5de38a;
+}
+
+@media (max-width: 700px) {
+  .difficulty-grid {
+    grid-template-columns: 1fr;
+  }
 }

@@ -1,6 +1,6 @@
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-import { onValue, ref, set } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
-import { auth, database } from "./firebase.js";
+import { get, onValue, ref, set } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+import { auth, database } from "./firebase.js?v=20260302r";
 
 const activities = ["Village", "Settings"];
 
@@ -127,25 +127,41 @@ function subscribeToUserStats(uid) {
     statsUnsubscribe = null;
   }
 
-  const statsRef = ref(database, `users/${uid}/stats`);
+  const accountDetailsRef = ref(database, `players/${uid}/accountDetails`);
 
-  statsUnsubscribe = onValue(statsRef, async (snapshot) => {
-    if (!snapshot.exists()) {
-      await set(statsRef, {
-        day: 1,
-        level: 1,
-        xp: 0,
-        villageLevel: 1,
-      });
-      return;
+  get(accountDetailsRef).then((accountSnapshot) => {
+    const difficultyLevel = accountSnapshot.exists() ? accountSnapshot.val()?.difficultyLevel ?? {} : {};
+    const hasEasyStats = Boolean(difficultyLevel?.easy?.gameDetails?.stats);
+    const hasNormalStats = Boolean(difficultyLevel?.normal?.gameDetails?.stats);
+    const hasHardcoreStats = Boolean(difficultyLevel?.hardcore?.gameDetails?.stats);
+
+    let normalizedDifficulty = "normal";
+    if (hasEasyStats) {
+      normalizedDifficulty = "easy";
+    } else if (hasNormalStats) {
+      normalizedDifficulty = "normal";
+    } else if (hasHardcoreStats) {
+      normalizedDifficulty = "hardcore";
     }
 
-    const stats = snapshot.val();
-    state.day = Number(stats.day ?? 1);
-    state.level = Number(stats.level ?? 1);
-    state.xp = Number(stats.xp ?? 0);
-    state.villageLevel = Number(stats.villageLevel ?? 1);
-    render();
+    const statsRef = ref(database, `players/${uid}/accountDetails/difficultyLevel/${normalizedDifficulty}/gameDetails/stats`);
+
+    statsUnsubscribe = onValue(statsRef, async (snapshot) => {
+      if (!snapshot.exists()) {
+        await set(statsRef, {
+          playerLevel: 1,
+          xp: 0,
+        });
+        return;
+      }
+
+      const stats = snapshot.val();
+      state.day = Number(stats.day ?? 1);
+      state.level = Number(stats.playerLevel ?? stats.level ?? 1);
+      state.xp = Number(stats.xp ?? 0);
+      state.villageLevel = Number(stats.villageLevel ?? 1);
+      render();
+    });
   });
 }
 

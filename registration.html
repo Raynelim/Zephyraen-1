@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zephyraen Text RPG - Registration</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="auth-wrap">
+      <section class="auth-card registration-card">
+        <h1>Welcome to Zephyraen!</h1>
+        <p class="subtitle">Complete your player setup</p>
+        <p class="auth-status" id="registrationStatusMessage" aria-live="polite"></p>
+
+        <form id="registrationForm" class="auth-form" novalidate>
+          <div class="registration-simple-grid">
+            <div class="auth-field">
+              <label for="regName">Name</label>
+              <input id="regName" name="name" type="text" />
+              <p id="regNameMessage" class="field-message" aria-live="polite"></p>
+            </div>
+
+            <div class="auth-field">
+              <label for="regAge">Age</label>
+              <div class="age-row">
+                <input id="regAge" name="age" type="range" min="13" max="100" value="18" />
+                <input id="regAgeNumber" name="ageNumber" type="number" min="13" max="100" value="18" class="age-number" />
+              </div>
+              <p id="regAgeMessage" class="field-message" aria-live="polite"></p>
+            </div>
+
+            <div class="auth-field auth-full">
+              <label>Choose Difficulty</label>
+              <div class="difficulty-grid" id="difficultyGrid">
+                <button type="button" class="difficulty-card" data-difficulty="Easy">Easy</button>
+                <button type="button" class="difficulty-card" data-difficulty="Normal">Normal</button>
+                <button type="button" class="difficulty-card" data-difficulty="Hardcore">Hardcore</button>
+              </div>
+              <p id="regDifficultyDescription" class="difficulty-description">Select a difficulty to see its description.</p>
+              <p id="regDifficultyMessage" class="field-message" aria-live="polite"></p>
+            </div>
+          </div>
+
+          <button type="submit" class="option-btn" formnovalidate>Begin your journey</button>
+        </form>
+      </section>
+    </main>
+
+    <script type="module" src="registration.js?v=20260302q"></script>
+  </body>
+</html>
