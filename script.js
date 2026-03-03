@@ -12,6 +12,8 @@ const state = {
   villageLevel: 1,
   log: ["Zephyraen initialized in minimal mode."],
   uid: null,
+  name: "Player",
+  email: "",
 };
 
 const ui = {
@@ -77,8 +79,19 @@ function renderVillage() {
   ui.text.textContent = "Village tab is currently empty.\n\n(Planned village gameplay will be added next.)";
 }
 
+function deriveNameFromEmail(email) {
+  if (!email || !email.includes("@")) {
+    return "Player";
+  }
+
+  const localPart = email.split("@")[0]?.trim();
+  return localPart || "Player";
+}
+
 function renderSettings() {
-  ui.text.innerHTML = `Settings:\n\n<div class="settings-grid">\n  <button class="option-btn" data-setting="rules">Gameplay Rules</button>\n  <button class="option-btn" data-setting="login">Login</button>\n  <button class="option-btn" data-setting="signup">Signup</button>\n</div>`;
+  const displayName = state.name || deriveNameFromEmail(state.email);
+  const displayEmail = state.email || "player@unknown";
+  ui.text.innerHTML = `Settings:\n\n<div class="settings-grid">\n  <div class="settings-account">\n    <p class="inline-tag">LOGGED IN AS : <strong class="settings-name">${displayName}</strong></p>\n    <p class="settings-email">${displayEmail}</p>\n  </div>\n  <button class="option-btn" data-setting="tutorial">Tutorial Guide</button>\n  <button class="option-btn" data-setting="logout">Log out</button>\n</div>`;
 
   ui.text.querySelectorAll(".option-btn").forEach((button) => {
     button.addEventListener("click", async () => {
@@ -88,15 +101,14 @@ function renderSettings() {
         addLog("Gameplay Rules selected.");
       }
 
-      if (type === "login") {
-        await signOut(auth);
-        window.location.href = "index.html";
+      if (type === "tutorial") {
+        window.location.href = "tutorial.html";
         return;
       }
 
-      if (type === "signup") {
+      if (type === "logout") {
         await signOut(auth);
-        window.location.href = "signup.html";
+        window.location.href = "index.html";
         return;
       }
 
@@ -130,7 +142,15 @@ function subscribeToUserStats(uid) {
   const accountDetailsRef = ref(database, `players/${uid}/accountDetails`);
 
   get(accountDetailsRef).then((accountSnapshot) => {
-    const difficultyLevel = accountSnapshot.exists() ? accountSnapshot.val()?.difficultyLevel ?? {} : {};
+    const accountDetails = accountSnapshot.exists() ? accountSnapshot.val() ?? {} : {};
+    const accountEmail = typeof accountDetails?.email === "string" ? accountDetails.email.trim() : "";
+    const accountName = typeof accountDetails?.name === "string" ? accountDetails.name.trim() : "";
+    if (accountEmail) {
+      state.email = accountEmail;
+    }
+    state.name = accountName || deriveNameFromEmail(state.email);
+
+    const difficultyLevel = accountDetails?.difficultyLevel ?? {};
     const hasEasyStats = Boolean(difficultyLevel?.easy?.gameDetails?.stats);
     const hasNormalStats = Boolean(difficultyLevel?.normal?.gameDetails?.stats);
     const hasHardcoreStats = Boolean(difficultyLevel?.hardcore?.gameDetails?.stats);
@@ -172,6 +192,8 @@ onAuthStateChanged(auth, (user) => {
   }
 
   state.uid = user.uid;
+  state.email = user.email ?? "";
+  state.name = deriveNameFromEmail(state.email);
   addLog(`Signed in as ${user.email ?? "player"}.`);
   subscribeToUserStats(user.uid);
   render();
