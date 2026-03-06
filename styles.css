@@ -336,6 +336,10 @@ h1 {
   padding-right: 0;
 }
 
+.main-text.profile-main {
+  white-space: normal;
+}
+
 .combat-sidebar-grid {
   display: grid;
   grid-template-rows: minmax(220px, 1fr) minmax(180px, 0.8fr);
@@ -895,6 +899,251 @@ h1 {
   gap: 10px;
 }
 
+.profile-grid {
+  margin-top: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.profile-grid-skilltree {
+  margin-top: 0;
+}
+
+.profile-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-strong);
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.profile-card h3 {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.9rem;
+  color: #bdc6d3;
+}
+
+.profile-meta-grid {
+  display: grid;
+  gap: 4px;
+}
+
+.profile-skilltree-top {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 12px;
+}
+
+.profile-skilltree-subline {
+  margin-top: 0;
+  margin-bottom: 1em;
+}
+
+.profile-tree-layout {
+  display: grid;
+  gap: 0;
+}
+
+.profile-tree-diagram {
+  gap: 0;
+}
+
+.profile-tree-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 36px;
+}
+
+.profile-tree-row-top {
+  margin-bottom: 0;
+}
+
+.profile-tree-row-bottom {
+  margin-top: 0;
+}
+
+.profile-tree-rail {
+  position: relative;
+  height: 64px;
+}
+
+.profile-tree-rail-line {
+  position: absolute;
+  left: 16.666%;
+  right: 16.666%;
+  height: 1px;
+  background: rgba(138, 168, 198, 0.58);
+}
+
+.profile-tree-rail-stem {
+  position: absolute;
+  width: 1px;
+  background: rgba(138, 168, 198, 0.58);
+}
+
+.profile-tree-rail-stem-left {
+  left: 16.666%;
+}
+
+.profile-tree-rail-stem-center {
+  left: 50%;
+}
+
+.profile-tree-rail-stem-right {
+  left: 83.333%;
+}
+
+.profile-tree-rail-top .profile-tree-rail-line {
+  top: 34px;
+}
+
+.profile-tree-rail-top .profile-tree-rail-stem-left,
+.profile-tree-rail-top .profile-tree-rail-stem-right {
+  top: 0;
+  height: 34px;
+}
+
+.profile-tree-rail-top .profile-tree-rail-stem-center {
+  top: 0;
+  height: 64px;
+}
+
+.profile-tree-rail-bottom .profile-tree-rail-line {
+  top: 30px;
+}
+
+.profile-tree-rail-bottom .profile-tree-rail-stem-left,
+.profile-tree-rail-bottom .profile-tree-rail-stem-right {
+  top: 30px;
+  height: 34px;
+}
+
+.profile-tree-rail-bottom .profile-tree-rail-stem-center {
+  top: 0;
+  height: 64px;
+}
+
+.profile-tree-root-wrap {
+  position: relative;
+  display: grid;
+  justify-content: center;
+  padding: 0;
+}
+
+.profile-tree-root-wrap::before,
+.profile-tree-root-wrap::after {
+  display: none;
+}
+
+.profile-tree-root {
+  justify-self: center;
+  border: 1px solid var(--line-strong);
+  background: #090b10;
+  padding: 14px 28px;
+  min-width: 360px;
+  text-align: center;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: #d9e7f7;
+}
+
+.profile-tree-node {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #090b10;
+  padding: 12px 14px;
+  display: grid;
+  gap: 8px;
+  min-height: 154px;
+}
+
+.profile-tree-node-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-tree-node-title {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.9rem;
+  color: #bdc6d3;
+}
+
+.profile-tree-node-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-tree-node-controls strong {
+  min-width: 26px;
+  text-align: right;
+}
+
+.profile-skills-empty {
+  min-height: 120px;
+  border: 1px dashed var(--line);
+  background: #090b10;
+}
+
+@media (max-width: 860px) {
+  .profile-tree-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .profile-tree-rail {
+    height: 34px;
+  }
+
+  .profile-tree-rail-line {
+    left: 50%;
+    right: auto;
+    width: 0;
+  }
+
+  .profile-tree-rail-stem-left,
+  .profile-tree-rail-stem-right,
+  .profile-tree-rail-stem-center {
+    left: 50%;
+  }
+
+  .profile-tree-rail-top .profile-tree-rail-line,
+  .profile-tree-rail-bottom .profile-tree-rail-line {
+    top: 17px;
+  }
+
+  .profile-tree-rail-top .profile-tree-rail-stem-left,
+  .profile-tree-rail-top .profile-tree-rail-stem-right,
+  .profile-tree-rail-bottom .profile-tree-rail-stem-left,
+  .profile-tree-rail-bottom .profile-tree-rail-stem-right {
+    top: 0;
+    height: 34px;
+  }
+
+  .profile-tree-rail-top .profile-tree-rail-stem-center,
+  .profile-tree-rail-bottom .profile-tree-rail-stem-center {
+    top: 0;
+    height: 34px;
+  }
+
+  .profile-tree-root {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+.profile-actions {
+  display: grid;
+  gap: 10px;
+}
+
 .stats-console-grid {
   display: grid;
   gap: 10px;
@@ -953,6 +1202,16 @@ h1 {
 }
 
 .settings-grid .option-btn[data-setting="logout"]:focus-visible {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 2px rgba(255, 127, 150, 0.3);
+}
+
+.profile-actions .option-btn[data-profile-action="logout"]:hover {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 1px rgba(255, 127, 150, 0.2), 0 8px 16px rgba(0, 0, 0, 0.22);
+}
+
+.profile-actions .option-btn[data-profile-action="logout"]:focus-visible {
   border-color: var(--danger);
   box-shadow: 0 0 0 2px rgba(255, 127, 150, 0.3);
 }

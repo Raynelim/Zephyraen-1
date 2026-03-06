@@ -2,7 +2,7 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 import { get, onValue, ref, set } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 import { auth, database } from "./firebase.js?v=20260302r";
 
-const activities = ["Village", "Combat", "Stats", "Settings"];
+const activities = ["Village", "Combat", "Profile"];
 const levelCap = 20;
 const statPointsPerLevel = 5;
 const baseStatValue = 10;
@@ -267,6 +267,7 @@ const state = {
   clockAnchorRealMs: Date.now(),
   lastClockDay: 1,
   isPersistingDay: false,
+  profileView: "overview",
   combat: {
     selectedArea: null,
     area1Kills: 0,
@@ -482,6 +483,9 @@ function renderActivities() {
   ui.activities.querySelectorAll(".activity-btn").forEach((button) => {
     button.addEventListener("click", () => {
       state.page = button.dataset.activity;
+      if (state.page === "Profile") {
+        state.profileView = "overview";
+      }
       render();
     });
   });
@@ -641,6 +645,7 @@ function resetContentLayout() {
   ui.contentFrame?.classList.remove("combat-layout");
   ui.ascii?.classList.remove("combat-sidebar");
   ui.text?.classList.remove("combat-main");
+  ui.text?.classList.remove("profile-main");
 }
 
 function renderCombatAreaSelect() {
@@ -933,7 +938,7 @@ async function assignStatPoint(statKey) {
 
   state.coreStats[statKey] += 1;
   recalculateDerivedState();
-  addLog(`+1 assigned to ${statKey.toUpperCase()}.`);
+  addLog(`+ assigned to ${statKey.toUpperCase()}.`);
 
   try {
     await persistStats();
@@ -945,27 +950,6 @@ async function assignStatPoint(statKey) {
   render();
 }
 
-function renderStatsPage() {
-  const statRows = coreStats
-    .map(
-      (stat) =>
-        `<div class="stat-row"><div class="stat-info"><p><strong>${stat.short} ${stat.label}</strong></p><p class="inline-tag">${stat.effect}</p></div><div class="stat-controls"><strong>${state.coreStats[stat.key]}</strong><button class="action-btn" data-stat-plus="${stat.key}" ${state.statPoints <= 0 ? "disabled" : ""}>+1</button></div></div>`
-    )
-    .join("");
-
-  const xpLine = state.xpRequired > 0 ? `${state.xp}/${state.xpRequired} XP` : "MAX";
-
-  ui.text.innerHTML = `CHITIN-FRAME Stat Console\n\n<div class="settings-grid">\n  <div class="settings-account">\n    <p class="inline-tag">LEVEL : <strong>${state.level}</strong></p>\n    <p class="inline-tag">EXP : <strong>${xpLine}</strong></p>\n    <p class="inline-tag">AVAILABLE STAT POINTS : <strong>${state.statPoints}</strong></p>\n    <p class="inline-tag">LEVEL CAP [PART I] : 20 // +5 POINTS PER LEVEL</p>\n  </div>\n  <div class="stats-console-grid">${statRows}</div>\n</div>`;
-
-  ui.text.querySelectorAll("[data-stat-plus]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const statKey = button.dataset.statPlus;
-      await assignStatPoint(statKey);
-    });
-  });
-
-}
-
 function deriveNameFromEmail(email) {
   if (!email || !email.includes("@")) {
     return "Player";
@@ -975,18 +959,106 @@ function deriveNameFromEmail(email) {
   return localPart || "Player";
 }
 
-function renderSettings() {
+function renderProfilePage() {
+  ui.text?.classList.add("profile-main");
+
   const displayName = state.name || deriveNameFromEmail(state.email);
   const displayEmail = state.email || "player@unknown";
-  ui.text.innerHTML = `Settings:\n\n<div class="settings-grid">\n  <div class="settings-account">\n    <p class="inline-tag">LOGGED IN AS : <strong class="settings-name">${displayName}</strong></p>\n    <p class="settings-email">${displayEmail}</p>\n  </div>\n  <button class="option-btn" data-setting="tutorial">Tutorial Guide</button>\n  <button class="option-btn" data-setting="logout">Log out</button>\n</div>`;
+  const xpLine = state.xpRequired > 0 ? `${state.xp}/${state.xpRequired} XP` : "MAX";
+  const isPreEvolution = state.level <= levelCap;
 
-  ui.text.querySelectorAll(".option-btn").forEach((button) => {
+  const renderBranchNode = (stat, branchPosition) =>
+    `<article class="profile-tree-node profile-tree-node-${branchPosition}" data-tree-node="${stat.key}"><div class="profile-tree-node-head"><p class="profile-tree-node-title">${stat.label}</p><div class="profile-tree-node-controls"><strong>${state.coreStats[stat.key]}</strong><button class="action-btn" data-profile-stat-plus="${stat.key}" ${state.statPoints <= 0 || !isPreEvolution ? "disabled" : ""}>+</button></div></div><p class="inline-tag">${stat.effect}</p></article>`;
+
+  const topBranchRows = coreStats.slice(0, 3).map((stat) => renderBranchNode(stat, "top")).join("");
+  const bottomBranchRows = coreStats.slice(3, 6).map((stat) => renderBranchNode(stat, "bottom")).join("");
+
+  if (state.profileView === "skilltree") {
+    ui.text.innerHTML = `
+      <div class="profile-grid profile-grid-skilltree">
+        <section class="profile-card profile-skilltree">
+          <div class="profile-skilltree-top">
+            <button class="option-btn" data-profile-back="overview">← Back to Profile</button>
+          </div>
+          <h3>Skill Tree</h3>
+          <p class="inline-tag profile-skilltree-subline">LEVEL 1-20 BRANCHES : 6 MAIN STATS</p>
+          <div class="profile-tree-layout profile-tree-diagram">
+            <div class="profile-tree-row profile-tree-row-top">${topBranchRows}</div>
+
+            <div class="profile-tree-rail profile-tree-rail-top">
+              <span class="profile-tree-rail-line"></span>
+              <span class="profile-tree-rail-stem profile-tree-rail-stem-left"></span>
+              <span class="profile-tree-rail-stem profile-tree-rail-stem-center"></span>
+              <span class="profile-tree-rail-stem profile-tree-rail-stem-right"></span>
+            </div>
+
+            <div class="profile-tree-root-wrap">
+              <div class="profile-tree-root">Core Growth</div>
+            </div>
+
+            <div class="profile-tree-rail profile-tree-rail-bottom">
+              <span class="profile-tree-rail-line"></span>
+              <span class="profile-tree-rail-stem profile-tree-rail-stem-left"></span>
+              <span class="profile-tree-rail-stem profile-tree-rail-stem-center"></span>
+              <span class="profile-tree-rail-stem profile-tree-rail-stem-right"></span>
+            </div>
+
+            <div class="profile-tree-row profile-tree-row-bottom">${bottomBranchRows}</div>
+          </div>
+        </section>
+
+        <section class="profile-card profile-skills">
+          <h3>Skills</h3>
+          <div class="profile-skills-empty"></div>
+        </section>
+      </div>
+    `;
+
+    ui.text.querySelectorAll("[data-profile-stat-plus]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const statKey = button.dataset.profileStatPlus;
+        await assignStatPoint(statKey);
+      });
+    });
+
+    ui.text.querySelector("[data-profile-back='overview']")?.addEventListener("click", () => {
+      state.profileView = "overview";
+      render();
+    });
+
+    return;
+  }
+
+  ui.text.innerHTML = `
+    <div class="profile-grid">
+      <section class="profile-card profile-overview">
+        <h3>Character Profile</h3>
+        <p class="inline-tag">NAME : <strong class="settings-name">${displayName}</strong></p>
+        <p class="settings-email">${displayEmail}</p>
+        <div class="profile-meta-grid">
+          <p class="inline-tag">LEVEL : <strong>${state.level}</strong></p>
+          <p class="inline-tag">EXP : <strong>${xpLine}</strong></p>
+          <p class="inline-tag">AVAILABLE STAT POINTS : <strong>${state.statPoints}</strong></p>
+          <p class="inline-tag">EVOLUTION : <strong>Unknown</strong></p>
+        </div>
+      </section>
+
+      <section class="profile-card profile-actions">
+        <button class="option-btn" data-profile-open="skilltree">Skill Tree</button>
+        <button class="option-btn" data-profile-action="tutorial">Tutorial Guide</button>
+        <button class="option-btn" data-profile-action="logout">Log out</button>
+      </section>
+    </div>
+  `;
+
+  ui.text.querySelector("[data-profile-open='skilltree']")?.addEventListener("click", () => {
+    state.profileView = "skilltree";
+    render();
+  });
+
+  ui.text.querySelectorAll("[data-profile-action]").forEach((button) => {
     button.addEventListener("click", async () => {
-      const type = button.dataset.setting;
-
-      if (type === "rules") {
-        addLog("Gameplay Rules selected.");
-      }
+      const type = button.dataset.profileAction;
 
       if (type === "tutorial") {
         window.location.href = "tutorial.html";
@@ -1016,10 +1088,10 @@ function render() {
     renderVillage();
   } else if (state.page === "Combat") {
     renderCombatPage();
-  } else if (state.page === "Stats") {
-    renderStatsPage();
+  } else if (state.page === "Profile") {
+    renderProfilePage();
   } else {
-    renderSettings();
+    renderVillage();
   }
 
   renderLog();
